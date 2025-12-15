@@ -108,6 +108,17 @@ function initScrollAnimations() {
         });
     });
 
+    // Automatically find and observe project cards with stagger
+    const projectsSliders = document.querySelectorAll('.projects-slider');
+    projectsSliders.forEach(slider => {
+        const cards = slider.querySelectorAll('.project-card');
+        cards.forEach((card, index) => {
+            card.classList.add('scroll-animate');
+            card.style.setProperty('--animation-delay', `${index * 0.08}s`);
+            observeElement(card);
+        });
+    });
+
     // Automatically find and observe lists with stagger (for tags, etc.)
     const tagLists = document.querySelectorAll('.tags');
     tagLists.forEach(list => {

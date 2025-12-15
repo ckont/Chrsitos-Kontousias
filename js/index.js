@@ -131,3 +131,6 @@ spotlightTargets.forEach((el) => {
 
 // Initialize scroll animations
 import './components/scrollAnimations.js';
+
+// Initialize projects slider
+import './components/projectsSlider.js';
