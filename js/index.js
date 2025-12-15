@@ -18,6 +18,17 @@ if (themeToggleBtn) {
     localStorage.setItem(THEME_KEY, nextTheme);
   });
 }
+if (langToggleBtn) {
+  langToggleBtn.addEventListener("click", () => {
+    const currentPath = window.location.pathname;
+    const basePath = '/Chrsitos-Kontousias';
+    if (currentPath.includes('/el/')) {
+      window.location.href = 'https://ckont.github.io' + basePath + '/en/';
+    } else {
+      window.location.href = 'https://ckont.github.io' + basePath + '/el/';
+    }
+  });
+}
 if (navToggleBtn && nav) {
   navToggleBtn.addEventListener("click", () => {
     const isOpen = document.body.classList.toggle("nav-open");
