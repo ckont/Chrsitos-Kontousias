@@ -9,7 +9,7 @@
         (function() {
             const savedLang = localStorage.getItem('ck-lang');
             if (savedLang === 'el') {
-                window.location.href = '/el/';
+                window.location.href = 'https://ckont.github.io/Chrsitos-Kontousias/el/';
                 return;
             }
             
@@ -20,16 +20,16 @@
             const langParam = urlParams.get('lang');
             
             if (langParam === 'el' || (langParam !== 'en' && isGreek)) {
-                window.location.href = '/el/';
+                window.location.href = 'https://ckont.github.io/Chrsitos-Kontousias/el/';
             } else {
-                window.location.href = '/en/';
+                window.location.href = 'https://ckont.github.io/Chrsitos-Kontousias/en/';
             }
         })();
     </script>
 </head>
 <body>
     <p>Redirecting to your preferred language...</p>
-    <p>If you are not redirected, please <a href="/en/">click here</a>.</p>
+    <p>If you are not redirected, please <a href="https://ckont.github.io/Chrsitos-Kontousias/en/">click here</a>.</p>
 </body>
 </html>
 
