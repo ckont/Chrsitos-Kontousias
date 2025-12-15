@@ -9,7 +9,7 @@
         (function() {
             const savedLang = localStorage.getItem('ck-lang');
             if (savedLang === 'el') {
-                window.location.href = '/Chrsitos-Kontousias/el/';
+                window.location.href = '/el/';
                 return;
             }
             
@@ -20,9 +20,9 @@
             const langParam = urlParams.get('lang');
             
             if (langParam === 'el' || (langParam !== 'en' && isGreek)) {
-                window.location.href = '/Chrsitos-Kontousias/el/';
+                window.location.href = '/el/';
             } else {
-                window.location.href = '/Chrsitos-Kontousias/en/';
+                window.location.href = '/en/';
             }
         })();
     </script>
