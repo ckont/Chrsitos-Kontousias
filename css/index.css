@@ -962,7 +962,7 @@ body.theme-light .interactive-spotlight::before {
 @media (max-width: 1200px) {
   .site-header__nav {
     position: fixed;
-    inset-block-start: 5.8rem;
+    inset-block-start: 5.5rem;
     inset-inline: 0;
     max-block-size: calc(100vh - 5.8rem);
     overflow-y: auto;
@@ -1150,8 +1150,8 @@ body.theme-light .interactive-spotlight::before {
 }
 @media (max-width: 422px) {
   .site-header__nav {
-    inset-block-start: 7.1rem;
-    max-block-size: calc(100vh - 7.1rem);
+    inset-block-start: 6.5rem;
+    max-block-size: calc(100vh - 6.5rem);
   }
 }
 
