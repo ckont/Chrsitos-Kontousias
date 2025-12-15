@@ -18,10 +18,35 @@ if (themeToggleBtn) {
     localStorage.setItem(THEME_KEY, nextTheme);
   });
 }
+if (langToggleBtn) {
+  langToggleBtn.addEventListener("click", () => {
+    const currentPath = window.location.pathname;
+    const basePath = '/Chrsitos-Kontousias';
+    if (currentPath.includes('/el/')) {
+      window.location.href = 'https://ckont.github.io' + basePath + '/en/';
+    } else {
+      window.location.href = 'https://ckont.github.io' + basePath + '/el/';
+    }
+  });
+}
 if (navToggleBtn && nav) {
+  const closeMenu = () => {
+    if (!document.body.classList.contains("nav-open")) return;
+    document.body.classList.add("nav-closing");
+    navToggleBtn.setAttribute("aria-expanded", "false");
+    setTimeout(() => {
+      document.body.classList.remove("nav-open", "nav-closing");
+    }, 350);
+  };
   navToggleBtn.addEventListener("click", () => {
-    const isOpen = document.body.classList.toggle("nav-open");
-    navToggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    const isOpen = document.body.classList.contains("nav-open");
+    if (isOpen) {
+      closeMenu();
+    } else {
+      document.body.classList.remove("nav-closing");
+      document.body.classList.add("nav-open");
+      navToggleBtn.setAttribute("aria-expanded", "true");
+    }
   });
   document.addEventListener("click", (event) => {
     if (!document.body.classList.contains("nav-open")) return;
@@ -29,21 +54,18 @@ if (navToggleBtn && nav) {
     const clickedInsideNav = nav.contains(target);
     const clickedToggle = navToggleBtn.contains(target);
     if (!clickedInsideNav && !clickedToggle) {
-      document.body.classList.remove("nav-open");
-      navToggleBtn.setAttribute("aria-expanded", "false");
+      closeMenu();
     }
   });
   window.addEventListener("resize", () => {
     if (window.innerWidth > 1200 && document.body.classList.contains("nav-open")) {
-      document.body.classList.remove("nav-open");
-      navToggleBtn.setAttribute("aria-expanded", "false");
+      closeMenu();
     }
   });
   nav.querySelectorAll("a[href^=\"#\"]").forEach((link) => {
     link.addEventListener("click", () => {
       if (document.body.classList.contains("nav-open")) {
-        document.body.classList.remove("nav-open");
-        navToggleBtn.setAttribute("aria-expanded", "false");
+        closeMenu();
       }
     });
   });
