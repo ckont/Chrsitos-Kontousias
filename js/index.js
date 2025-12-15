@@ -49,6 +49,20 @@ if (navToggleBtn && nav) {
     navToggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
   });
 
+  // Close nav when clicking outside of the nav or toggle button
+  document.addEventListener("click", (event) => {
+    if (!document.body.classList.contains("nav-open")) return;
+
+    const target = event.target;
+    const clickedInsideNav = nav.contains(target);
+    const clickedToggle = navToggleBtn.contains(target);
+
+    if (!clickedInsideNav && !clickedToggle) {
+      document.body.classList.remove("nav-open");
+      navToggleBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
   window.addEventListener("resize", () => {
     if (window.innerWidth > 1200 && document.body.classList.contains("nav-open")) {
       document.body.classList.remove("nav-open");
