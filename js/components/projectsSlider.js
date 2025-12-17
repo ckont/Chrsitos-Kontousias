@@ -10,19 +10,32 @@ function initProjectsSlider() {
 
     const slides = track.querySelectorAll('.projects-slider__slide');
     const totalSlides = slides.length;
-    let currentIndex = 0;
+    let currentIndex = 0; // Current slide index
+    let currentViewIndex = 0; // Current view/page index
     let slidesPerView = getSlidesPerView();
+    let dots = [];
 
-    // Create dots
-    slides.forEach((_, index) => {
-        const dot = document.createElement('button');
-        dot.className = 'projects-slider__dot';
-        dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
-        dot.addEventListener('click', () => goToSlide(index));
-        dotsContainer.appendChild(dot);
-    });
+    function createDots() {
+        // Clear existing dots
+        dotsContainer.innerHTML = '';
+        dots = [];
+        
+        // Calculate total views based on slides per view
+        const totalViews = Math.ceil(totalSlides / slidesPerView);
+        
+        // Create dots for each view
+        for (let i = 0; i < totalViews; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'projects-slider__dot';
+            dot.setAttribute('aria-label', `Go to view ${i + 1}`);
+            dot.addEventListener('click', () => goToView(i));
+            dotsContainer.appendChild(dot);
+            dots.push(dot);
+        }
+    }
 
-    const dots = dotsContainer.querySelectorAll('.projects-slider__dot');
+    // Initialize dots
+    createDots();
 
     function getSlidesPerView() {
         const width = window.innerWidth;
@@ -45,7 +58,7 @@ function initProjectsSlider() {
             const slideWidth = slides[0]?.offsetWidth || 0;
             const gap = 20; // 1.25rem = 20px
             
-            // Calculate scroll position based on current index
+            // Calculate scroll position based on current slide index
             let scrollPosition = currentIndex * (slideWidth + gap);
             
             // For the last slides, ensure we can scroll to show them
@@ -63,6 +76,7 @@ function initProjectsSlider() {
             });
 
             updateButtons();
+            updateViewIndex();
             updateDots();
             
             // Reset flag after smooth scroll animation completes
@@ -70,6 +84,11 @@ function initProjectsSlider() {
                 isProgrammaticScroll = false;
             }, 600);
         });
+    }
+
+    function updateViewIndex() {
+        // Calculate which view the current slide belongs to
+        currentViewIndex = Math.floor(currentIndex / slidesPerView);
     }
 
     function updateButtons() {
@@ -80,8 +99,18 @@ function initProjectsSlider() {
 
     function updateDots() {
         dots.forEach((dot, index) => {
-            dot.classList.toggle('projects-slider__dot--active', index === currentIndex);
+            dot.classList.toggle('projects-slider__dot--active', index === currentViewIndex);
         });
+    }
+
+    function goToView(viewIndex) {
+        // Calculate the slide index for the start of this view
+        const totalViews = Math.ceil(totalSlides / slidesPerView);
+        const targetView = Math.max(0, Math.min(viewIndex, totalViews - 1));
+        currentIndex = targetView * slidesPerView;
+        // Ensure we don't go beyond the last slide
+        currentIndex = Math.min(currentIndex, totalSlides - 1);
+        updateSlider();
     }
 
     function goToSlide(index) {
@@ -91,22 +120,30 @@ function initProjectsSlider() {
     }
 
     function nextSlide() {
+        // Move by one view (slidesPerView slides)
         const maxIndex = totalSlides - 1;
-        if (currentIndex >= maxIndex) {
+        const nextIndex = currentIndex + slidesPerView;
+        
+        if (nextIndex > maxIndex) {
             // Loop to beginning
             currentIndex = 0;
         } else {
-            currentIndex++;
+            currentIndex = nextIndex;
         }
         updateSlider();
     }
 
     function prevSlide() {
-        if (currentIndex <= 0) {
-            // Loop to end
-            currentIndex = totalSlides - 1;
+        // Move back by one view (slidesPerView slides)
+        const prevIndex = currentIndex - slidesPerView;
+        
+        if (prevIndex < 0) {
+            // Loop to the last view
+            const totalViews = Math.ceil(totalSlides / slidesPerView);
+            const lastViewStart = (totalViews - 1) * slidesPerView;
+            currentIndex = Math.min(lastViewStart, totalSlides - 1);
         } else {
-            currentIndex--;
+            currentIndex = prevIndex;
         }
         updateSlider();
     }
@@ -119,6 +156,7 @@ function initProjectsSlider() {
     let scrollTimeout;
     let isProgrammaticScroll = false;
     let programmaticScrollTimeout = null;
+    let lastUpdateIndex = currentIndex;
     
     track.addEventListener('scroll', () => {
         // Ignore programmatic scrolls for a longer period to allow smooth scroll to complete
@@ -133,46 +171,61 @@ function initProjectsSlider() {
             return;
         }
         
+        // Calculate current view based on scroll position
+        const slideWidth = slides[0]?.offsetWidth || 0;
+        const gap = 20;
+        const scrollPosition = track.scrollLeft;
+        
+        // Calculate which view we're in based on scroll position
+        // Each view spans slidesPerView slides
+        const viewWidth = (slideWidth + gap) * slidesPerView;
+        const totalViews = Math.ceil(totalSlides / slidesPerView);
+        
+        // Use floor to determine base view, then check if we've scrolled past the midpoint
+        const baseViewIndex = Math.floor(scrollPosition / viewWidth);
+        const positionInView = (scrollPosition % viewWidth) / viewWidth;
+        
+        // Switch to next view if we've scrolled more than 50% through the current view
+        // This ensures that when you see the third project half-way, it switches to the next view
+        let bestViewIndex = baseViewIndex;
+        if (positionInView > 0.5 && baseViewIndex < totalViews - 1) {
+            bestViewIndex = baseViewIndex + 1;
+        }
+        bestViewIndex = Math.max(0, Math.min(bestViewIndex, totalViews - 1));
+        
+        // Update view index and slide index if changed
+        if (bestViewIndex !== currentViewIndex) {
+            currentViewIndex = bestViewIndex;
+            // Set currentIndex to the first slide of the detected view
+            currentIndex = bestViewIndex * slidesPerView;
+            currentIndex = Math.min(currentIndex, totalSlides - 1);
+            lastUpdateIndex = currentIndex;
+            updateDots();
+        }
+        
+        // Debounce the button update and snap to view when scrolling stops
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
-            const slideWidth = slides[0]?.offsetWidth || 0;
-            const gap = 20;
-            const scrollPosition = track.scrollLeft;
-            const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
-            
-            // Always use visibility-based detection for more accuracy
-            const trackRect = track.getBoundingClientRect();
-            let bestIndex = currentIndex; // Default to current to prevent unwanted changes
-            let maxVisible = 0;
-            
-            // Find the slide that's most visible (centered or most in view)
-            slides.forEach((slide, index) => {
-                const slideRect = slide.getBoundingClientRect();
-                const slideCenter = slideRect.left + slideRect.width / 2;
-                const trackCenter = trackRect.left + trackRect.width / 2;
+            updateButtons();
+            // Snap to the current view's first slide when scrolling ends
+            if (!isProgrammaticScroll) {
+                const targetPosition = currentIndex * (slideWidth + gap);
+                const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+                const finalPosition = Math.min(targetPosition, maxScroll);
                 
-                // Calculate how much of the slide is visible
-                const visibleLeft = Math.max(0, slideRect.left - trackRect.left);
-                const visibleRight = Math.min(slideRect.width, trackRect.right - slideRect.left);
-                const visibleArea = Math.max(0, visibleRight - visibleLeft);
-                
-                // Prefer slides that are more centered and more visible
-                const centerDistance = Math.abs(slideCenter - trackCenter);
-                const score = visibleArea - (centerDistance * 0.1); // Prefer centered slides
-                
-                if (score > maxVisible && visibleArea > slideRect.width * 0.3) {
-                    maxVisible = score;
-                    bestIndex = index;
+                // Only snap if we're not already at the target position (within 20px tolerance)
+                if (Math.abs(track.scrollLeft - finalPosition) > 20) {
+                    isProgrammaticScroll = true;
+                    track.scrollTo({
+                        left: finalPosition,
+                        behavior: 'smooth'
+                    });
+                    setTimeout(() => {
+                        isProgrammaticScroll = false;
+                    }, 600);
                 }
-            });
-            
-            // Only update if we found a valid slide and it's different
-            if (bestIndex !== currentIndex && bestIndex >= 0 && bestIndex < totalSlides) {
-                currentIndex = bestIndex;
-                updateButtons();
-                updateDots();
             }
-        }, 150); // Slightly longer timeout for more stable detection
+        }, 150);
     });
 
     // Handle window resize
@@ -182,7 +235,10 @@ function initProjectsSlider() {
         resizeTimeout = setTimeout(() => {
             const newSlidesPerView = getSlidesPerView();
             if (newSlidesPerView !== slidesPerView) {
-                updateSlider();
+                slidesPerView = newSlidesPerView;
+                createDots(); // Recreate dots for new view count
+                updateViewIndex(); // Recalculate current view
+                updateDots(); // Update active dot
             }
         }, 250);
     });
@@ -199,6 +255,7 @@ function initProjectsSlider() {
     });
 
     // Initialize
+    updateViewIndex();
     updateSlider();
 
     // Make track focusable for keyboard navigation
